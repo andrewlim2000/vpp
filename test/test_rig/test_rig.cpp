@@ -23,7 +23,7 @@ PID myPID(&Input, &Output, &Setpoint, 0.1, 1, 1, DIRECT);
 // Variables to calculate RPM from HES data
 #define SIZE 2 // define size of array
 unsigned long ms_array[SIZE]; // stores an array of microseconds (each "slot" is 1 rev)
-volatile unsigned int index;
+volatile unsigned int i;
 unsigned long mean;
 unsigned long ms_start;
 
@@ -33,9 +33,9 @@ unsigned long ms_print = 0;
 // Function to check RPM
 void checkRotation() 
 {
-	mean = ((mean * (double) SIZE) - ms_array[index]) / SIZE; // prepare average calculation for later
-	ms_array[index] = (millis() - ms_start); // record ms passed to array
-	mean = ((mean * (double) SIZE) + ms_array[index]) / SIZE; // get new average
+	mean = ((mean * (double) SIZE) - ms_array[i]) / SIZE; // prepare average calculation for later
+	ms_array[i] = (millis() - ms_start); // record ms passed to array
+	mean = ((mean * (double) SIZE) + ms_array[i]) / SIZE; // get new average
 	
 	// get RPM based on average microseconds
 	Input = 1.0 / ((mean / (60.0 * 1000)) / SIZE); // revolutions per minute, "fairly" accurate
@@ -47,10 +47,10 @@ void interrupt() { // one rotation has happened
 //    Serial.println("Interrupted!");
     Serial.println();
     ms_start = millis();
-    if(index == SIZE - 1) {
-        index = 0;
+    if(i == SIZE - 1) {
+        i = 0;
     } else {
-        index++;
+        i++;
     }
 }
 
@@ -69,7 +69,7 @@ void setup()
     pinMode(HALL, INPUT_PULLUP);
     attachInterrupt(0, interrupt, RISING);
 	mean = 0; 
-	index = 0; // start recording at index 0
+	i = 0; // start recording at index 0
 	ms_start = micros();
    
 	// Initialize PID stuff

@@ -36,7 +36,7 @@ Encoder enc(CA, CB);
 // Variables to calculate RPM from HES data
 #define SIZE 2 // define size of array
 unsigned long ms_array[SIZE]; // stores an array of microseconds (each "slot" is 1 rev)
-volatile unsigned int index;
+volatile unsigned int i;
 unsigned long mean;
 unsigned long ms_start;
 
@@ -50,10 +50,10 @@ void interrupt() { // one rotation has happened
     // Serial.println("Interrupted!");
     // Serial.println();
     ms_start = millis();
-    if(index == SIZE - 1) {
-        index = 0;
+    if(i == SIZE - 1) {
+        i = 0;
     } else {
-        index++;
+        i++;
     }
 }
 
@@ -66,16 +66,21 @@ void setup() {
     // Hall Effect Initialization
     pinMode(HALL, INPUT_PULLUP);
     attachInterrupt(HALLINTERRUPT, interrupt, RISING);
+    
     // Zero the motor to "home" (the angle that the motor SHOULD be at such that the propellor angle is 0 degrees)
     // Use index pin for this
+    pinMode(INDEX, INPUT_PULLUP);
+    motor1.drive(MOTORSPEED);
+    while (digitalRead(INDEX)); // while index pin has not been found
+    motor1.brake();
 }
 
 // Function to check RPM
 double checkRPM() 
 {
-	mean = ((mean * (double) SIZE) - ms_array[index]) / SIZE; // prepare average calculation for later
-	ms_array[index] = (millis() - ms_start); // record ms passed to array
-	mean = ((mean * (double) SIZE) + ms_array[index]) / SIZE; // get new average
+	mean = ((mean * (double) SIZE) - ms_array[i]) / SIZE; // prepare average calculation for later
+	ms_array[i] = (millis() - ms_start); // record ms passed to array
+	mean = ((mean * (double) SIZE) + ms_array[i]) / SIZE; // get new average
 	
 	// get RPM based on average microseconds
     double newRPM = 1.0 / ((mean / (60.0 * 1000)) / SIZE);
@@ -120,13 +125,14 @@ void changeAngle(long angle) {
 void loop() {
     RPM = checkRPM();
     // Everytime we interrupt (or every few seconds), we want to check the RPM to see if it has changed significantly
-    
     // TODO: Have some code to deal with motor jamming (some time limiter)
-    while(!Serial.available());
-    long a = Serial.parseFloat();
-    changeAngle(a);
 
     // if(/* NEEDS ANGLE CHANGE, */) {
     //     changeAngle(a);
     // }
+
+    // Temp stuff to test
+    while(!Serial.available());
+    long a = Serial.parseFloat();
+    changeAngle(a);
 }
