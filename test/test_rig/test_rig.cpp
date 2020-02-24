@@ -30,6 +30,7 @@ unsigned long ms_start;
 // Printing
 unsigned long ms_print = 0;
 
+// Function to check RPM
 void checkRotation() 
 {
 	mean = ((mean * (double) SIZE) - ms_array[index]) / SIZE; // prepare average calculation for later
@@ -37,10 +38,10 @@ void checkRotation()
 	mean = ((mean * (double) SIZE) + ms_array[index]) / SIZE; // get new average
 	
 	// get RPM based on average microseconds
-	Input = 1.0 / ((mean / (60.0 * 1000)) / SIZE); // revolutions per minute
-											               // "fairly" accurate
+	Input = 1.0 / ((mean / (60.0 * 1000)) / SIZE); // revolutions per minute, "fairly" accurate
 }
 
+// Function to update time(s) array everytime 1 rotation has happened
 void interrupt() { // one rotation has happened
     Serial.println();
 //    Serial.println("Interrupted!");
@@ -73,41 +74,37 @@ void setup()
    
 	// Initialize PID stuff
 	Input = 0;
-	// Prompts user for desired RPM
-	Serial.println("What RPM do you want?");
-   	while(!Serial.available()) {} // Waits for user input
+	Serial.println("What RPM do you want?"); // Prompts user for desired RPM
+   	while(!Serial.available()); // Waits for user input
 	Setpoint = Serial.parseFloat();
 	Serial.print("Your Input: "); // Echoes back user input for debugging
    	Serial.println(Setpoint);
 	Serial.println();
-	
-	// myPID.SetOutputLimits(0, 255); // PID will not go below 0 or above 255 (PWM limit)
+	myPID.SetOutputLimits(0, 255); // PID will not go below 0 or above 255 (PWM limit)
 	myPID.SetMode(AUTOMATIC); // Sets PID Controller to automatic calculations
 }
 
-void loop()
-{
+void loop() {
 	checkRotation();
 	myPID.Compute();
 	digitalWrite(PWM, Output);
-   
 	// Print stats every second
-   if((millis() - ms_print) > 1000) {
-      Serial.print("Actual: ");
-      Serial.println(Input);
-      Serial.print("Desired: ");
-      Serial.println(Setpoint);
-      Serial.print("Adjusted PWM: ");
-      Serial.println(Output);
-      Serial.print("Array:");
-      for(long ms : ms_array) {
-          Serial.print(" ");
-          Serial.print(ms);
-      }
-      Serial.println();
-//      Serial.print("Average: ");
-//      Serial.println(mean);
-      Serial.println();
-      ms_print = millis();
-   }
+    if((millis() - ms_print) > 1000) {
+        Serial.print("Actual: ");
+        Serial.println(Input);
+        Serial.print("Desired: ");
+        Serial.println(Setpoint);
+        Serial.print("Adjusted PWM: ");
+        Serial.println(Output);
+        Serial.print("Array:");
+        for(long ms : ms_array) {
+            Serial.print(" ");
+            Serial.print(ms);
+        }
+        Serial.println();
+        Serial.print("Average: ");
+        Serial.println(mean);
+        Serial.println();
+        ms_print = millis();
+    }
 }
