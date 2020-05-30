@@ -1,8 +1,5 @@
  /**
  * VPP Code
- * 
- * 
- * 
  */
 #include "Arduino.h"
 #include <SparkFun_TB6612.h> // https://github.com/sparkfun/SparkFun_TB6612FNG_Arduino_Library
@@ -35,7 +32,7 @@ Encoder enc(CA, CB);
 #define HALLINTERRUPT HALL-2 // Pin 2 but interrupt Pin 0
 // Variables to calculate RPM from HES data
 #define SIZE 2 // define size of array
-unsigned long ms_array[SIZE]; // stores an array of microseconds (each "slot" is 1 rev)
+unsigned long ms_array[SIZE]; // stores an array of microseconds (each element is 1 rotation’s time)
 volatile unsigned int i;
 unsigned long mean;
 unsigned long ms_start;
