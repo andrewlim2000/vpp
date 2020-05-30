@@ -54,6 +54,14 @@ void interrupt() { // one rotation has happened
     }
 }
 
+// zeroes motor and returns the zeroed angle position
+long zeroMotor() {
+    motor1.drive(MOTORSPEED);
+    while (digitalRead(INDEX)); // while index pin has not been found
+    motor1.brake();
+    return enc.read();
+}
+
 void setup() {
     Serial.begin(115200); // make sure this is running at high baud's to ensure fast transfers
     Serial.setTimeout(100000);
@@ -67,9 +75,7 @@ void setup() {
     // Zero the motor to "home" (the angle that the motor SHOULD be at such that the propellor angle is 0 degrees)
     // Use index pin for this
     pinMode(INDEX, INPUT_PULLUP);
-    motor1.drive(MOTORSPEED);
-    while (digitalRead(INDEX)); // while index pin has not been found
-    motor1.brake();
+    zeroMotor();
 }
 
 // Function to check RPM
